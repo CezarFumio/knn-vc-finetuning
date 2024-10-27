@@ -53,7 +53,7 @@ class KNeighborsVC(nn.Module):
         self.wavlm = wavlm.eval()
         self.device = torch.device(device)
         self.sr = self.h.sampling_rate
-        self.hop_length = 320
+        self.hop_length = 400
 
     def get_matching_set(self, wavs: list[Path] | list[Tensor], weights=None, vad_trigger_level=7) -> Tensor:
         """ Get concatenated wavlm features for the matching set using all waveforms in `wavs`, 
