@@ -206,7 +206,7 @@ class WavLMConfig:
 
         # relative position embedding
         self.relative_position_embedding: bool = False     # apply relative position embedding
-        self.num_buckets: int = 400     # number of buckets for relative position embedding
+        self.num_buckets: int = 320     # number of buckets for relative position embedding
         self.max_distance: int = 1280     # maximum distance for relative position embedding
         self.gru_rel_pos: bool = False     # apply gated relative position embedding
 
