@@ -64,12 +64,13 @@ def wavlm_large(pretrained=True, progress=True, device='cuda') -> WavLM:
         progress=progress
     )
 
-    cfg = WavLMConfig()
-    device = torch.device(device)
-    model = WavLM(cfg)
+    model = WavLMModel.from_pretrained("microsoft/wavlm-large")
+
     if pretrained:
-        model.load_state_dict(checkpoint['model.state_dict'])
+        model.load_state_dict(checkpoint)
+
     model = model.to(device)
     model.eval()
-    print(f"WavLM-Large loaded with {sum([p.numel() for p in model.parameters()]):,d} parameters.")
+
+    print(f"WavLM-Large-Whispered carregado com {sum(p.numel() for p in model.parameters()):,d} parâmetros.")
     return model
