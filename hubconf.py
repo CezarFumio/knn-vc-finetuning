@@ -8,7 +8,7 @@ import logging
 import json
 from pathlib import Path
 
-
+from transformers import WavLMModel, Wav2Vec2Processor
 from wavlm.WavLM import WavLM, WavLMConfig
 from hifigan.models import Generator as HiFiGAN
 from hifigan.utils import AttrDict
