@@ -226,7 +226,12 @@ class WavLM(nn.Module):
         logger.info(f"WavLM Config: {cfg.__dict__}")
 
         self.cfg = cfg
-        feature_enc_layers = eval(cfg.conv_feature_layers)
+        
+        if isinstance(cfg.conv_feature_layers, str):
+            feature_enc_layers = eval(cfg.conv_feature_layers)
+        else:
+            feature_enc_layers = cfg.conv_feature_layers
+        
         self.embed = feature_enc_layers[-1][0]
 
         self.feature_extractor = ConvFeatureExtractionModel(
