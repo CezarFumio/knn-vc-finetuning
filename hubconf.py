@@ -8,7 +8,7 @@ import logging
 import json
 from pathlib import Path
 
-from transformers import WavLMModel, Wav2Vec2Processor
+
 from wavlm.WavLM import WavLM, WavLMConfig
 from hifigan.models import Generator as HiFiGAN
 from hifigan.utils import AttrDict
@@ -63,14 +63,13 @@ def wavlm_large(pretrained=True, progress=True, device='cuda') -> WavLM:
         map_location=device, 
         progress=progress
     )
-
-    model = WavLMModel.from_pretrained("microsoft/wavlm-large")
-
+    
+    cfg = WavLMConfig(checkpoint['cfg'])
+    device = torch.device(device)
+    model = WavLM(cfg)
     if pretrained:
-        model.load_state_dict(checkpoint)
-
+        model.load_state_dict(checkpoint['model'])
     model = model.to(device)
     model.eval()
-
-    print(f"WavLM-Large-Whispered carregado com {sum(p.numel() for p in model.parameters()):,d} parâmetros.")
+    print(f"WavLM-Large loaded with {sum([p.numel() for p in model.parameters()]):,d} parameters.")
     return model
