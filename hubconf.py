@@ -59,7 +59,7 @@ def wavlm_large(pretrained=True, progress=True, device='cuda') -> WavLM:
             logging.warning(f"Overriding device {device} to cpu since no GPU is available.")
             device = 'cpu'
     checkpoint = torch.hub.load_state_dict_from_url(
-        "https://github.com/CezarFumio/knn-vc-finetuning/releases/download/v0.1/WavLM-Large-Whispered.pt", 
+        "https://github.com/CezarFumio/knn-vc-finetuning/releases/download/v0.1/wavlm_large_converted.pt", 
         map_location=device, 
         progress=progress
     )
