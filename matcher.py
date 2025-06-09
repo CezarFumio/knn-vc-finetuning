@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 import torch
@@ -53,7 +52,7 @@ class KNeighborsVC(nn.Module):
         self.wavlm = wavlm.eval()
         self.device = torch.device(device)
         self.sr = self.h.sampling_rate
-        self.hop_length = 400
+        self.hop_length = 320
 
     def get_matching_set(self, wavs: list[Path] | list[Tensor], weights=None, vad_trigger_level=7) -> Tensor:
         """ Get concatenated wavlm features for the matching set using all waveforms in `wavs`, 
@@ -111,26 +110,19 @@ class KNeighborsVC(nn.Module):
             x = waveform_end_trim
 
         # extract the representation of each layer
-        # Tokenize e passar pelo modelo
-        inputs = self.processor(x, sampling_rate=self.sr, return_tensors="pt")
-        inputs = {k: v.to(self.device) for k, v in inputs.items()}
-        
-        with torch.no_grad():
-            outputs = self.wavlm(**inputs)
-            hidden_states = outputs.hidden_states  # lista com shape (batch, seq_len, dim)
-
+        wav_input_16khz = x.to(self.device)
         if torch.allclose(weights, self.weighting):
-            # Fast path: média uniforme das camadas
-            stacked = torch.stack(hidden_states)         # (n_layers, batch, seq_len, dim)
-            mean = (stacked * weights[:, None, None, None].to(stacked.device)).sum(dim=0)  # (batch, seq_len, dim)
-            features = mean.squeeze(0)
+            # use fastpath
+            features = self.wavlm.extract_features(wav_input_16khz, output_layer=SPEAKER_INFORMATION_LAYER, ret_layer_results=False)[0]
+            features = features.squeeze(0)
         else:
-            # Peso diferente por camada
-            stacked = torch.stack(hidden_states)  # (n_layers, batch, seq_len, dim)
-            weighted = (stacked * weights[:, None, None, None].to(stacked.device)).sum(dim=0)  # (batch, seq_len, dim)
-            features = weighted.squeeze(0)
-
-        return features  # (seq_len, dim)
+            # use slower weighted
+            rep, layer_results = self.wavlm.extract_features(wav_input_16khz, output_layer=self.wavlm.cfg.encoder_layers, ret_layer_results=True)[0]
+            features = torch.cat([x.transpose(0, 1) for x, _ in layer_results], dim=0) # (n_layers, seq_len, dim)
+            # save full sequence
+            features = ( features*weights[:, None] ).sum(dim=0) # (seq_len, dim)
+        
+        return features
 
 
     @torch.inference_mode()
@@ -175,5 +167,3 @@ class KNeighborsVC(nn.Module):
             pred_wav = torchaudio.functional.gain(prediction, tgt_loudness - src_loudness)
         else: pred_wav = prediction
         return pred_wav
-
-
